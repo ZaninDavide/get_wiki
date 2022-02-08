@@ -1,0 +1,18 @@
+{
+
+  "description": "Firefox extension that allows you to copy a markdown or latex version of the content of any Wikipedia paragraph",
+  "manifest_version": 2,
+  "name": "Get Wiki - Markdown/Latex",
+  "version": "0.1",
+  "icons": {
+    "48": "icons/logo.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.wikipedia.org/*"],
+      "js": ["copy.js", "index.js"]
+    }
+  ]
+
+}
