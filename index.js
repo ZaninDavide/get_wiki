@@ -35,6 +35,7 @@ function inline_to_md(p) {
                     // inline math
                     let math = el.firstChild.firstChild.attributes.getNamedItem("alttext").value
                     math = math.slice(15, math.length - 1)
+                    math = math.trim()
                     md.push(`\$${math}\$`)
                 }else{
                     // generic span
@@ -60,22 +61,34 @@ function paragraph_to_md(par) {
     par.forEach(el => {
         switch (el.nodeName) {
             case "H1":
-                md.push(`# ${el.childNodes[0].textContent}`)
+                let title = el.childNodes[0].textContent
+                let url = window.location.href.split("?")[0].split("#")[0]
+                let link = url + "#" + title.replace(/\s/g, "_")
+                md.push(`# [${title}](${link})`)
                 break;
             case "H2":
-                md.push(`## ${el.childNodes[0].textContent}`)
+                let title2 = el.childNodes[0].textContent
+                let url2 = window.location.href.split("?")[0].split("#")[0]
+                let link2 = url2 + "#" + title2.replace(/\s/g, "_")
+                md.push(`## [${title2}](${link2})`)
                 break;
             case "H3":
-                md.push(`### ${el.childNodes[0].textContent}`)
+                let title3 = el.childNodes[0].textContent
+                let url3 = window.location.href.split("?")[0].split("#")[0]
+                let link3 = url3 + "#" + title3.replace(/\s/g, "_")
+                md.push(`### [${title3}](${link3})`)
                 break;
             case "P":
                 md.push(`${inline_to_md(el).trim()}`)
                 break;
             case "DL":
-                // math block
-                let math = el.firstChild.firstChild.firstChild.firstChild.attributes.getNamedItem("alttext").value
-                math = math.slice(15, math.length - 1)
-                md.push(`\$\$\n${math}\n\$\$`)
+                // every child is a math block
+                let blocks = Array.from(el.children)
+                for(let block of blocks) {
+                    let math = block.firstChild.firstChild.firstChild.attributes.getNamedItem("alttext").value
+                    math = math.slice(15, math.length - 1)
+                    md.push(`\$\$\n${math}\n\$\$`)
+                }
                 break;
             case "UL":
                 md.push(Array.from(el.children).map(li => {
@@ -108,6 +121,7 @@ function inline_to_latex(p) {
                     // inline math
                     let math = el.firstChild.firstChild.attributes.getNamedItem("alttext").value
                     math = math.slice(15, math.length - 1)
+                    math = math.trim()
                     md.push(`\$${math}\$`)
                 }else{
                     // generic span
@@ -145,10 +159,13 @@ function paragraph_to_latex(par) {
                 md.push(`${inline_to_latex(el).trim()}`)
                 break;
             case "DL":
-                // math block
-                let math = el.firstChild.firstChild.firstChild.firstChild.attributes.getNamedItem("alttext").value
-                math = math.slice(15, math.length - 1)
-                md.push(`\\[ ${math} \\]`)
+                // every child is a math block
+                let blocks = Array.from(el.children)
+                for(let block of blocks) {
+                    let math = block.firstChild.firstChild.firstChild.attributes.getNamedItem("alttext").value
+                    math = math.slice(15, math.length - 1)
+                    md.push(`\\[ ${math} \\]`)
+                }
                 break;
             case "UL":
                 md.push("\\begin{itemize}\n" + Array.from(el.children).map(li => {
@@ -210,11 +227,25 @@ site_sub.appendChild(mod_main)
 
 // all other paragraphs
 paragraphs.forEach(p => {
-    // p[0] = paragraph header   [1] = modify paragraph selection
-    let mod_section = p[0].childNodes[p[0].childNodes.length - 1]
-    
-    // remove "]""
-    mod_section.removeChild(mod_section.childNodes[mod_section.childNodes.length - 1]);
+    // p[0] = paragraph header
+    const editable = p[0].children[p[0].children.length - 1].classList.contains("mw-editsection")
+    let mod_section;
+
+    if(editable) {
+        // remove "]""
+        mod_section = p[0].childNodes[p[0].childNodes.length - 1]
+        mod_section.removeChild(mod_section.childNodes[mod_section.childNodes.length - 1])
+    }else{
+        mod_section = document.createElement("span")
+        mod_section.classList.add("mw-editsectionnnnn")
+        mod_section.style = "font-size: small;font-weight: normal;margin-left: 1em;vertical-align: baseline;line-height: 1em;font-family: sans-serif;"
+
+        let open_braket = document.createElement("span")
+        open_braket.classList.add("mw-editsection-bracket")
+        open_braket.innerText = "["
+
+        mod_section.appendChild(open_braket)
+    }
     
     let divider = document.createElement("span")
     divider.classList.add("mw-editsection-divider")
@@ -246,9 +277,11 @@ paragraphs.forEach(p => {
     end_braket.classList.add("mw-editsection-bracket")
     end_braket.innerText = "]"
 
-    mod_section.appendChild(divider)
+    if(editable) mod_section.appendChild(divider)
     mod_section.appendChild(copy_button)
     mod_section.appendChild(divider2)
     mod_section.appendChild(latex_button)
     mod_section.appendChild(end_braket)
+
+    if(!editable) p[0].appendChild(mod_section)
 })

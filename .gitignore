@@ -5,3 +5,6 @@
 .vscode
 /.vs
 /.vscode
+.web-ext-artifacts
+.web-extension-id
+*.xpi
