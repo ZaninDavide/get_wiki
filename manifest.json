@@ -3,7 +3,7 @@
   "description": "Allows you to copy a markdown or latex version of the content of any Wikipedia paragraph",
   "manifest_version": 2,
   "name": "Get Wiki - Markdown/Latex",
-  "version": "0.1",
+  "version": "0.2.1",
   "icons": {
     "48": "logo.png"
   },
@@ -20,7 +20,12 @@
       "id": "getwiki@zanin.com",
       "strict_min_version": "42.0"
     }
+  },
+
+  "permissions" : [ "storage", "clipboardRead", "clipboardWrite" ],
+
+  "options_ui": {
+    "page": "options.html"
   }
-  
 
 }

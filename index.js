@@ -1,24 +1,18 @@
-let children = Array.from(document.getElementById("mw-content-text").childNodes[0].children) 
+let options_defaults = [
+    {"name": "markdown", "default": true},
+    {"name": "latex", "default": true},
+    {"name": "markdown_link_title", "default": false},
+]
 
-let paragraphs = [[]]
+let options = {} 
 
-let main_header = document.getElementById("firstHeading")
-paragraphs[0].push(main_header)
-
-children.forEach(child => {
-    if(child.nodeName === "H2" || child.nodeName === "H3") {
-        paragraphs.push([])
-    }else if(
-        child.nodeName === "STYLE" ||
-        child.nodeName === "DIV" ||
-        child.nodeName === "TABLE"
-    ){
-        return false;
+function getOption(option_name) {
+    if(options[option_name] !== null && options[option_name] !== undefined) {
+        return options[option_name]
+    }else{
+        return options_defaults[option_name]
     }
-    if(paragraphs.length > 0){
-        paragraphs[paragraphs.length - 1].push(child)
-    }
-});
+}
 
 function inline_to_md(p) {
     let md = []
@@ -62,21 +56,43 @@ function paragraph_to_md(par) {
         switch (el.nodeName) {
             case "H1":
                 let title = el.childNodes[0].textContent
-                let url = window.location.href.split("?")[0].split("#")[0]
-                let link = url + "#" + title.replace(/\s/g, "_")
-                md.push(`# [${title}](${link})`)
+                if(getOption("markdown_link_title")){
+                    let url = window.location.href.split("?")[0].split("#")[0]
+                    let link = url + "#" + title.replace(/\s/g, "_")
+                    md.push(`# [${title}](${link})`)
+                }else{
+                    md.push(`# ${title}`)
+                }
                 break;
             case "H2":
                 let title2 = el.childNodes[0].textContent
-                let url2 = window.location.href.split("?")[0].split("#")[0]
-                let link2 = url2 + "#" + title2.replace(/\s/g, "_")
-                md.push(`## [${title2}](${link2})`)
+                if(getOption("markdown_link_title")){
+                    let url2 = window.location.href.split("?")[0].split("#")[0]
+                    let link2 = url2 + "#" + title2.replace(/\s/g, "_")
+                    md.push(`## [${title2}](${link2})`)
+                }else{
+                    md.push(`## ${title2}`)
+                }
                 break;
             case "H3":
                 let title3 = el.childNodes[0].textContent
-                let url3 = window.location.href.split("?")[0].split("#")[0]
-                let link3 = url3 + "#" + title3.replace(/\s/g, "_")
-                md.push(`### [${title3}](${link3})`)
+                if(getOption("markdown_link_title")){
+                    let url3 = window.location.href.split("?")[0].split("#")[0]
+                    let link3 = url3 + "#" + title3.replace(/\s/g, "_")
+                    md.push(`### [${title3}](${link3})`)
+                }else{
+                    md.push(`### ${title3}`)
+                }
+                break;
+            case "H4":
+                let title4 = el.childNodes[0].textContent
+                if(getOption("markdown_link_title")){
+                    let url4 = window.location.href.split("?")[0].split("#")[0]
+                    let link4 = url4 + "#" + title4.replace(/\s/g, "_")
+                    md.push(`#### [${title4}](${link4})`)
+                }else{
+                    md.push(`#### ${title4}`)
+                }
                 break;
             case "P":
                 md.push(`${inline_to_md(el).trim()}`)
@@ -155,6 +171,9 @@ function paragraph_to_latex(par) {
             case "H3":
                 md.push(`\\subsection{${escape(el.childNodes[0].textContent)}}`)
                 break;
+            case "H4":
+                md.push(`\\subsubsection{${escape(el.childNodes[0].textContent)}}`)
+                break;
             case "P":
                 md.push(`${inline_to_latex(el).trim()}`)
                 break;
@@ -179,109 +198,170 @@ function paragraph_to_latex(par) {
     return md.join("\n\n")
 }
 
+browser.storage.sync.get().then(res => {
+    // READ EXTENSION PREFERENCES
+    options = res
 
-// main paragraph
-let main = paragraphs.shift()
+    // INSERT COPY BUTTONS
 
-let mod_main = document.createElement("span")
-mod_main.classList.add("mw-editsection")    
+    let children = Array.from(document.getElementById("mw-content-text").childNodes[0].children) 
 
-let main_open_braket = document.createElement("span")
-main_open_braket.classList.add("mw-editsection-bracket")
-main_open_braket.innerText = "["
+    let paragraphs = [[]]
 
-let main_copy_button = document.createElement("a")
-main_copy_button.appendChild(document.createTextNode("markdown"))
-main_copy_button.addEventListener("click", () => {
-    console.log("Copied!")
-    copyTextToClipboard(
-        paragraph_to_md(main)
-    )
-})
+    let main_header = document.getElementById("firstHeading")
+    paragraphs[0].push(main_header)
 
-let main_divider = document.createElement("span")
-main_divider.classList.add("mw-editsection-divider")
-main_divider.innerText = " | "
-
-let main_latex_button = document.createElement("a")
-main_latex_button.appendChild(document.createTextNode("latex"))
-main_latex_button.addEventListener("click", () => {
-    console.log("Copied!")
-    copyTextToClipboard(
-        paragraph_to_latex(main)
-    )
-})
-
-let main_close_braket = document.createElement("span")
-main_close_braket.classList.add("mw-editsection-bracket")
-main_close_braket.innerText = "]"
-
-let site_sub = document.getElementById("siteSub")
-mod_main.appendChild(main_open_braket)
-mod_main.appendChild(main_copy_button)
-mod_main.appendChild(main_divider)
-mod_main.appendChild(main_latex_button)
-mod_main.appendChild(main_close_braket)
-site_sub.appendChild(mod_main)
+    children.forEach(child => {
+        if(child.nodeName === "H2" || child.nodeName === "H3" || child.nodeName === "H4") {
+            paragraphs.push([])
+        }else if(
+            child.nodeName === "STYLE" ||
+            child.nodeName === "DIV" ||
+            child.nodeName === "TABLE"
+        ){
+            return false;
+        }
+        if(paragraphs.length > 0){
+            paragraphs[paragraphs.length - 1].push(child)
+        }
+    });
 
 
-// all other paragraphs
-paragraphs.forEach(p => {
-    // p[0] = paragraph header
-    const editable = p[0].children[p[0].children.length - 1].classList.contains("mw-editsection")
-    let mod_section;
+    // main paragraph
+    let main = paragraphs.shift()
 
-    if(editable) {
-        // remove "]""
-        mod_section = p[0].childNodes[p[0].childNodes.length - 1]
-        mod_section.removeChild(mod_section.childNodes[mod_section.childNodes.length - 1])
-    }else{
-        mod_section = document.createElement("span")
-        mod_section.classList.add("mw-editsectionnnnn")
-        mod_section.style = "font-size: small;font-weight: normal;margin-left: 1em;vertical-align: baseline;line-height: 1em;font-family: sans-serif;"
+    let mod_main = document.createElement("span")
+    mod_main.classList.add("mw-editsection")    
 
-        let open_braket = document.createElement("span")
-        open_braket.classList.add("mw-editsection-bracket")
-        open_braket.innerText = "["
+    let main_open_braket = document.createElement("span")
+    main_open_braket.classList.add("mw-editsection-bracket")
+    main_open_braket.innerText = "["
+    main_open_braket.style = "margin-right: 0.25em;"
 
-        mod_section.appendChild(open_braket)
+    let main_copy_button = document.createElement("a")
+    main_copy_button.appendChild(document.createTextNode("markdown"))
+    main_copy_button.addEventListener("click", e => {
+        console.log("Started coping...")
+        copyTextToClipboard(
+            paragraph_to_md(main),
+            e.shiftKey
+        )
+    })
+
+    let main_divider = document.createElement("span")
+    main_divider.classList.add("mw-editsection-divider")
+    main_divider.innerText = " | "
+
+    let main_latex_button = document.createElement("a")
+    main_latex_button.appendChild(document.createTextNode("latex"))
+    main_latex_button.addEventListener("click", e => {
+        console.log("Started coping...")
+        copyTextToClipboard(
+            paragraph_to_latex(main),
+            e.shiftKey
+        )
+    })
+
+    let main_close_braket = document.createElement("span")
+    main_close_braket.classList.add("mw-editsection-bracket")
+    main_close_braket.innerText = "]"
+    main_close_braket.style = "margin-left: 0.25em;"
+
+    let site_sub = document.getElementById("siteSub")
+
+    if(getOption("markdown") && getOption("latex")){
+        mod_main.appendChild(main_open_braket)
+        mod_main.appendChild(main_copy_button)
+        mod_main.appendChild(main_divider)
+        mod_main.appendChild(main_latex_button)
+        mod_main.appendChild(main_close_braket)
+        site_sub.appendChild(mod_main)
+    }else if (getOption("markdown")){
+        mod_main.appendChild(main_open_braket)
+        mod_main.appendChild(main_copy_button)
+        mod_main.appendChild(main_close_braket)
+        site_sub.appendChild(mod_main)
+    }else if (getOption("latex")){
+        mod_main.appendChild(main_open_braket)
+        mod_main.appendChild(main_latex_button)
+        mod_main.appendChild(main_close_braket)
+        site_sub.appendChild(mod_main)
     }
-    
-    let divider = document.createElement("span")
-    divider.classList.add("mw-editsection-divider")
-    divider.innerText = " | "
 
-    let copy_button = document.createElement("a")
-    copy_button.appendChild(document.createTextNode("markdown"))
-    copy_button.addEventListener("click", () => {
-        console.log("Copied!")
-        copyTextToClipboard(
-            paragraph_to_md(p)
-        )
+
+    // all other paragraphs
+    paragraphs.forEach(p => {
+        // p[0] = paragraph header
+        const editable = p[0].children[p[0].children.length - 1].classList.contains("mw-editsection")
+        let mod_section;
+
+        if(editable) {
+            // remove "]""
+            mod_section = p[0].childNodes[p[0].childNodes.length - 1]
+            mod_section.removeChild(mod_section.childNodes[mod_section.childNodes.length - 1])
+        }else{
+            mod_section = document.createElement("span")
+            mod_section.classList.add("mw-editsectionnnnn")
+            mod_section.style = "font-size: small;font-weight: normal;margin-left: 1em;vertical-align: baseline;line-height: 1em;font-family: sans-serif;"
+
+            let open_braket = document.createElement("span")
+            open_braket.classList.add("mw-editsection-bracket")
+            open_braket.innerText = "["
+
+            mod_section.appendChild(open_braket)
+        }
+        
+        let divider = document.createElement("span")
+        divider.classList.add("mw-editsection-divider")
+        divider.innerText = " | "
+
+        let copy_button = document.createElement("a")
+        copy_button.appendChild(document.createTextNode("markdown"))
+        copy_button.addEventListener("click", e => {
+            console.log("Started coping...")
+            copyTextToClipboard(
+                paragraph_to_md(p),
+                e.shiftKey
+            )
+        })
+
+        let divider2 = document.createElement("span")
+        divider2.classList.add("mw-editsection-divider")
+        divider2.innerText = " | "
+
+        let latex_button = document.createElement("a")
+        latex_button.appendChild(document.createTextNode("latex"))
+        latex_button.addEventListener("click", e => {
+            console.log("Started coping...")
+            copyTextToClipboard(
+                paragraph_to_latex(p),
+                e.shiftKey
+            )
+        })
+
+        let end_braket = document.createElement("span")
+        end_braket.classList.add("mw-editsection-bracket")
+        end_braket.innerText = "]"
+
+        // ADD BUTTONS TO THE PARAGRAPH'S EDIT SECTION
+        if(getOption("markdown") && getOption("latex")){
+            if(editable) mod_section.appendChild(divider)
+            mod_section.appendChild(copy_button)
+            mod_section.appendChild(divider2)
+            mod_section.appendChild(latex_button)
+            mod_section.appendChild(end_braket)
+            if(!editable) p[0].appendChild(mod_section)
+        }else if(getOption("markdown")){
+            if(editable) mod_section.appendChild(divider)
+            mod_section.appendChild(copy_button)
+            mod_section.appendChild(end_braket)
+            if(!editable) p[0].appendChild(mod_section)
+        }else if(getOption("latex")){
+            if(editable) mod_section.appendChild(divider)
+            mod_section.appendChild(latex_button)
+            mod_section.appendChild(end_braket)
+            if(!editable) p[0].appendChild(mod_section)
+        }
+        
     })
-
-    let divider2 = document.createElement("span")
-    divider2.classList.add("mw-editsection-divider")
-    divider2.innerText = " | "
-
-    let latex_button = document.createElement("a")
-    latex_button.appendChild(document.createTextNode("latex"))
-    latex_button.addEventListener("click", () => {
-        console.log("Copied!")
-        copyTextToClipboard(
-            paragraph_to_latex(p)
-        )
-    })
-
-    let end_braket = document.createElement("span")
-    end_braket.classList.add("mw-editsection-bracket")
-    end_braket.innerText = "]"
-
-    if(editable) mod_section.appendChild(divider)
-    mod_section.appendChild(copy_button)
-    mod_section.appendChild(divider2)
-    mod_section.appendChild(latex_button)
-    mod_section.appendChild(end_braket)
-
-    if(!editable) p[0].appendChild(mod_section)
 })

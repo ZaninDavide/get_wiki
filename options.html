@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0">
+    <title>Settings: GetWiki</title>
+</head>
+<body>
+    <form id="settings_form">
+        <h1>GetWiki - Preferences</h1>
+
+        <h2>General</h2>
+        <input type="checkbox" id="markdown_checkbox" name="markdown_checkbox" value="markdown_checkbox">
+        <label for="markdown_checkbox">Show "markdown" button</label><br>
+        <input type="checkbox" id="latex_checkbox" name="latex_checkbox" value="latex_checkbox">
+        <label for="latex_checkbox">Show "latex" button</label><br>
+
+        <br>
+
+        <h2>Markdown</h2>
+        <input type="checkbox" id="markdown_link_title" name="markdown_link_title" value="markdown_link_title">
+        <label for="markdown_link_title">Titles are links to the paragraph</label><br>
+
+        <br>
+
+        <h2>Latex</h2>
+        <p>No option jet</p>
+
+        <br><br>
+
+        <button id="save_button" type="submit">Save Settings</button>
+    </form>
+    <style>
+        body { font-family: sans-serif; }
+        h1, h2 { 
+            font-family: 'Linux Libertine','Georgia','Times',serif; 
+            border-bottom: 1px solid #a2a9b1;
+        }
+        form { padding: 20px; }
+        input { margin-bottom: 10px; cursor: pointer; }
+        label { cursor: pointer; color: #0645ad; }
+        #save_button { 
+            background-color: #f8f9fa;
+            color: #202122;
+            display: inline-block;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            margin: 0;
+            border: 1px solid #a2a9b1;
+            border-radius: 2px;
+            cursor: pointer;
+            vertical-align: middle;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: bold;
+            line-height: 1.28571429em;
+            text-align: center;
+            -webkit-appearance: none;  
+            min-height: 32px;
+            min-width: 4em;
+            max-width: 28.75em;
+            width: 100%;
+            -webkit-transition: background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms;
+            transition: background-color 100ms,color 100ms,border-color 100ms,box-shadow 100ms;
+        }
+        #save_button:hover {
+            background-color: #ffffff;
+            color: #404244;
+            border-color: #a2a9b1;
+        }
+        #save_button:active {
+            background-color: #c8ccd1;
+            color: #000000;
+            border-color: #72777d;
+            box-shadow: none;
+        }
+    </style>
+    <script src="options.js"></script>
+</body>
+</html>

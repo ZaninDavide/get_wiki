@@ -24,16 +24,32 @@ function fallbackCopyTextToClipboard(text) {
 
     document.body.removeChild(textArea);
 }
-function copyTextToClipboard(text) {
-    if (!navigator.clipboard) {
-        fallbackCopyTextToClipboard(text);
-        return;
+function copyTextToClipboard(text, add_instead_of_replace) {
+    if(add_instead_of_replace) {
+        if (!navigator.clipboard) {
+            alert("Unable to read clipboard!")
+            fallbackCopyTextToClipboard(text)
+            return;
+        }
+        navigator.clipboard.readText().then(function(old_text) {
+            navigator.clipboard.writeText(old_text + "\n\n" + text).then(function () {
+                console.log('Async: Adding to clipboard was successful!')
+            }, function (err) {
+                console.error('Async: Could not add text to the clipboard: ', err)
+            });
+        })
+
+    }else{
+        if (!navigator.clipboard) {
+            fallbackCopyTextToClipboard(text)
+            return;
+        }
+        navigator.clipboard.writeText(text).then(function () {
+            console.log('Async: Copying to clipboard was successful!')
+        }, function (err) {
+            console.error('Async: Could not copy text: ', err)
+        });
     }
-    navigator.clipboard.writeText(text).then(function () {
-        console.log('Async: Copying to clipboard was successful!');
-    }, function (err) {
-        console.error('Async: Could not copy text: ', err);
-    });
 }
 
 function copyToClip(str) {
