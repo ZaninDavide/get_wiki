@@ -55,7 +55,7 @@ function paragraph_to_md(par) {
     par.forEach(el => {
         switch (el.nodeName) {
             case "H1":
-                let title = el.childNodes[0].textContent
+                let title = Array.from(el.childNodes).filter(c => c.textContent)[0].textContent
                 if(getOption("markdown_link_title")){
                     let url = window.location.href.split("?")[0].split("#")[0]
                     let link = url + "#" + title.replace(/\s/g, "_")
@@ -65,7 +65,7 @@ function paragraph_to_md(par) {
                 }
                 break;
             case "H2":
-                let title2 = el.childNodes[0].textContent
+                let title2 = Array.from(el.childNodes).filter(c => c.textContent)[0].textContent
                 if(getOption("markdown_link_title")){
                     let url2 = window.location.href.split("?")[0].split("#")[0]
                     let link2 = url2 + "#" + title2.replace(/\s/g, "_")
@@ -75,7 +75,7 @@ function paragraph_to_md(par) {
                 }
                 break;
             case "H3":
-                let title3 = el.childNodes[0].textContent
+                let title3 = Array.from(el.childNodes).filter(c => c.textContent)[0].textContent
                 if(getOption("markdown_link_title")){
                     let url3 = window.location.href.split("?")[0].split("#")[0]
                     let link3 = url3 + "#" + title3.replace(/\s/g, "_")
@@ -85,7 +85,7 @@ function paragraph_to_md(par) {
                 }
                 break;
             case "H4":
-                let title4 = el.childNodes[0].textContent
+                let title4 = Array.from(el.childNodes).filter(c => c.textContent)[0].textContent
                 if(getOption("markdown_link_title")){
                     let url4 = window.location.href.split("?")[0].split("#")[0]
                     let link4 = url4 + "#" + title4.replace(/\s/g, "_")
@@ -101,9 +101,17 @@ function paragraph_to_md(par) {
                 // every child is a math block
                 let blocks = Array.from(el.children)
                 for(let block of blocks) {
-                    let math = block.firstChild.firstChild.firstChild.attributes.getNamedItem("alttext").value
-                    math = math.slice(15, math.length - 1)
-                    md.push(`\$\$\n${math}\n\$\$`)
+                    let block_math = ""
+                    for(let math of Array.from(block.childNodes)){
+                        if(math.nodeName === "SPAN"){
+                            let math_str = math.firstChild.firstChild.attributes.getNamedItem("alttext").value
+                            math_str = math_str.slice(15, math_str.length - 1)
+                            block_math += math_str
+                        }else if(math.nodeName === "#text") {
+                            block_math += `\\text{${math.textContent}}`
+                        }
+                    }
+                    md.push(`\$\$\n${block_math}\n\$\$`)
                 }
                 break;
             case "UL":
@@ -115,7 +123,7 @@ function paragraph_to_md(par) {
                 break;
         }
     })
-    return md.join("\n")
+    return md.join("\n\n")
 }
 
 function escape(str){
@@ -181,9 +189,17 @@ function paragraph_to_latex(par) {
                 // every child is a math block
                 let blocks = Array.from(el.children)
                 for(let block of blocks) {
-                    let math = block.firstChild.firstChild.firstChild.attributes.getNamedItem("alttext").value
-                    math = math.slice(15, math.length - 1)
-                    md.push(`\\[ ${math} \\]`)
+                    let block_math = ""
+                    for(let math of Array.from(block.childNodes)){
+                        if(math.nodeName === "SPAN"){
+                            let math_str = math.firstChild.firstChild.attributes.getNamedItem("alttext").value
+                            math_str = math_str.slice(15, math_str.length - 1)
+                            block_math += math_str
+                        }else if(math.nodeName === "#text") {
+                            block_math += `\\text{${math.textContent}}`
+                        }
+                    }
+                    md.push(`\\[ ${block_math} \\]`)
                 }
                 break;
             case "UL":
