@@ -119,6 +119,11 @@ function paragraph_to_md(par) {
                     return "- " + inline_to_md(li)
                 }).join("\n"))
                 break;
+            case "OL":
+                md.push(Array.from(el.children).map((li, id) => {
+                    return (id+1).toString() + ". " + inline_to_md(li)
+                }).join("\n"))
+                break;
             default:
                 break;
         }
@@ -206,6 +211,11 @@ function paragraph_to_latex(par) {
                 md.push("\\begin{itemize}\n" + Array.from(el.children).map(li => {
                     return "\\item{" + inline_to_latex(li) + "}"
                 }).join("\n") + "\n\\end{itemize}")
+                break;
+            case "OL":
+                md.push("\\begin{enumerate}\n" + Array.from(el.children).map((li, id) => {
+                    return "\\item{" + inline_to_latex(li) + "}"
+                }).join("\n") + "\n\\end{enumerate}")
                 break;
             default:
                 break;
